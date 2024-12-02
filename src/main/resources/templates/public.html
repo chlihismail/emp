@@ -1,0 +1,74 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head> 
+    <title>EMP</title> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <div>
+      <header class="inset-x-0 top-0 z-50">
+        <nav class="flex items-center justify-between m:justify-end p-6">
+          <h1 class="text-balance text-xl font-semibold tracking-tight text-gray-900">Welcome to the area, where you can't miss events!
+            <span sec:authorize="isAuthenticated()" class="text-lg font-bold text-gray-900 ml-4">
+              Hi, <span th:text="${#authentication.principal.name}"></span>
+            </span>
+          </h1>
+          <div class="flex flex-1 gap-2 justify-end">
+            <a sec:authorize="!isAuthenticated()" href="/signin" class="text-sm/6 font-semibold text-gray-900">Sign in</a>
+            <a sec:authorize="!isAuthenticated()" href="/signup" class="text-sm/6 font-semibold text-gray-900">Sign up</a>
+            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="POST">
+              <button type="submit">Sign out</button>
+            </form>
+          </div>
+        </nav>
+      </header>
+      <a sec:authorize="hasRole('ORGANIZER')"
+        class="ml-6 px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:ring-2 focus:ring-green-400"
+        th:href="@{/event-form}">
+        Create
+      </a>
+      <div class="my-8 mx-2 md:mx-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div th:each="event : ${events}" class="flex flex-col justify-between p-4 bg-white shadow-md rounded-lg border border-gray-200">
+          <div>
+            <h2 class="text-lg font-bold text-gray-800 mb-2" th:text="${event.title}">Event Title</h2>
+            <p class="text-sm text-gray-600 mb-4" th:text="${event.description}">Event description goes here. This is a brief summary of the event details.</p>
+
+          </div>
+          <div>
+            <div class="text-sm text-gray-500 mb-2">
+              <p><strong>Date:</strong> <span th:text="${event.date}">January 1, 2024</span></p>
+              <p><strong>Time:</strong> <span th:text="${event.time}">January 1, 2024</span></p>
+              <p><strong>Location:</strong> <span th:text="${event.place}">Online</span></p>
+              <p><strong>Price: $</strong> <span th:text="${event.price}">$50.00</span></p>
+            </div>
+            <div class="flex justify-between items-center gap-2">
+              <span th:if="${user != null and user instanceof T(com.cxi.emp.entity.Participant) and user.registredEvents.contains(event)}" 
+                class="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 focus:ring-2 focus:ring-green-400">
+                Booked!
+              </span>
+
+              <a th:if="${user != null and user instanceof T(com.cxi.emp.entity.Participant) and not user.registredEvents.contains(event)}" 
+                th:href="@{/book-event/{id}(id=${event.id})}"
+                class="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:ring-2 focus:ring-blue-400">
+                Book
+              </a>
+              <a th:href="@{/update-event/{id}(id=${event.id})}" 
+                sec:authorize="hasRole('ORGANIZER')" 
+                class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600">
+                Update
+              </a>
+              <form th:action="@{/delete-event/{id}(id=${event.id})}" method="post" th:if="${event.participants == null or event.participants.isEmpty()}">
+                <button type="submit" sec:authorize="hasRole('ORGANIZER')" 
+                  class="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600">
+                  Delete
+                </button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
